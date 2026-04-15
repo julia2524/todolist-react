@@ -1,21 +1,21 @@
 import React, { useEffect } from "react";
-import { useRecoilState } from "recoil";
-import { Categories, categoryState, toDoList } from "./atoms";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Categories, categoryState, toDoList, toDosSelector } from "./atoms";
 import styled from "styled-components";
 import { useForm } from "react-hook-form";
 
 const Title = styled.h1`
   text-align: center;
 `;
-
 interface IForm {
   toDo: string;
 }
+
 function App() {
   const [category, setCategory] = useRecoilState<Categories>(categoryState);
   const [toDos, setToDos] = useRecoilState(toDoList);
-  const { register, handleSubmit, setValue, setError, formState } =
-    useForm<IForm>();
+  const categoriedToDos = useRecoilValue(toDosSelector);
+  const { register, handleSubmit, setValue } = useForm<IForm>();
   const onValid = ({ toDo }: IForm) => {
     const newToDo = { id: Date.now(), text: toDo, category };
     setToDos((oldToDos) => [newToDo, ...oldToDos]);
@@ -50,35 +50,33 @@ function App() {
         <button>Add</button>
       </form>
       <ul>
-        {toDos
-          ?.filter((todo) => todo.category === category)
-          .map((todo) => (
-            <li key={todo.id}>
-              <span>{todo.text}</span>
-              {todo.category !== Categories.TO_DO && (
-                <button
-                  onClick={() => onClick(todo.id, todo.text, Categories.TO_DO)}
-                >
-                  TO DO
-                </button>
-              )}
-              {todo.category !== Categories.DOING && (
-                <button
-                  onClick={() => onClick(todo.id, todo.text, Categories.DOING)}
-                >
-                  DOING
-                </button>
-              )}
-              {todo.category !== Categories.DONE && (
-                <button
-                  onClick={() => onClick(todo.id, todo.text, Categories.DONE)}
-                >
-                  DONE
-                </button>
-              )}
-              <button onClick={() => onDelete(todo.id)}>❌</button>
-            </li>
-          ))}
+        {categoriedToDos.map((todo) => (
+          <li key={todo.id}>
+            <span>{todo.text}</span>
+            {todo.category !== Categories.TO_DO && (
+              <button
+                onClick={() => onClick(todo.id, todo.text, Categories.TO_DO)}
+              >
+                TO DO
+              </button>
+            )}
+            {todo.category !== Categories.DOING && (
+              <button
+                onClick={() => onClick(todo.id, todo.text, Categories.DOING)}
+              >
+                DOING
+              </button>
+            )}
+            {todo.category !== Categories.DONE && (
+              <button
+                onClick={() => onClick(todo.id, todo.text, Categories.DONE)}
+              >
+                DONE
+              </button>
+            )}
+            <button onClick={() => onDelete(todo.id)}>❌</button>
+          </li>
+        ))}
       </ul>
     </>
   );
